@@ -1,0 +1,5 @@
+2/2/21: Completed assignment
+2/3/21: Added Makefile
+2/4/21 14:55: Added CHANGELOG and README. Preparing to zip and submit.
+2/4/21 15:40: Added check for salt that adds a sink to the center. Removed set() function.
+2/4/21 17:28: Fixed "Segmentation Fault" error. (I think) - Preparing to zip and submit actually.

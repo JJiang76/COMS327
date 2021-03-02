@@ -1,0 +1,22 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the end goal of creating a rogue-like game.
+
+This program generates a dungeon to standard output. The user has optional switches he is
+able to pass in order to load and save dungeons to and from the disk.
+
+"--load": passing the load switch will load a dungeon from ~/.rlg327/dungeon
+
+"--save": passing the save switch will save the current dungeon to ~/.rlg327/dungeon
+
+Both switches are able to be passed. In that case, a dungeon is loaded, displayed, and
+saved back to the disk.
+
+If no switches are passed, the program randomly generates a dungeon and displays it
+without saving.
+
+Additionally, the program will generate distance maps of tunneling and non-tunneling
+monsters based off dijkstra's algorithm. Each digit rendered in the distance maps
+is the cost of going from that cell to the PC, modulo 10.
