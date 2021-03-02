@@ -121,12 +121,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (argc > 1) {
-    if (!strcmp(argv[1], "--nummon")) {
-
-    }
-  }
-
   if (do_seed) {
     /* Allows me to generate more than one dungeon *
      * per second, as opposed to time().           */
