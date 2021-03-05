@@ -56,6 +56,7 @@ typedef struct dungeon {
   uint8_t hardness[DUNGEON_Y][DUNGEON_X];
   uint8_t pc_distance[DUNGEON_Y][DUNGEON_X];
   uint8_t pc_tunnel[DUNGEON_Y][DUNGEON_X];
+  character_t *character_map[DUNGEON_Y][DUNGEON_X];
   pc_t pc;
 } dungeon_t;
 
@@ -70,5 +71,9 @@ void render_distance_map(dungeon_t *d);
 void render_tunnel_distance_map(dungeon_t *d);
 void render_hardness_map(dungeon_t *d);
 void render_movement_cost_map(dungeon_t *d);
+
+void init_characters(dungeon_t *d, int mons, heap_t *h);
+
+int move(dungeon_t *d, character_t *c);
 
 #endif

@@ -626,9 +626,37 @@ void render_dungeon(dungeon_t *d)
 
   for (p[dim_y] = 0; p[dim_y] < DUNGEON_Y; p[dim_y]++) {
     for (p[dim_x] = 0; p[dim_x] < DUNGEON_X; p[dim_x]++) {
-      if (d->pc.position[dim_x] == p[dim_x] && d->pc.position[dim_y] == p[dim_y]) {
-        putchar('@');
-      } else {
+      if (d->character_map[p[dim_y]][p[dim_x]]) {
+        if (d->character_map[p[dim_y]][p[dim_x]]->pc) {
+          putchar('@');
+        }
+        else if (d->character_map[p[dim_y]][p[dim_x]]->npc) {
+          int dec = 0, j = 1, remain;
+          long int binary = d->character_map[p[dim_y]][p[dim_x]]->npc->characteristics;
+
+          while (binary !=0) {
+            remain = binary % 10;
+            binary /= 10;
+            dec += remain * j;
+            j *= 2;
+          }
+
+          if (dec < 10) {
+            printf("%d", dec);
+          }
+          else {
+            switch (dec) {
+              case 10: putchar('a'); break;
+              case 11: putchar('b'); break;
+              case 12: putchar('c'); break;
+              case 13: putchar('d'); break;
+              case 14: putchar('e'); break;
+              case 15: putchar('f'); break;
+            }
+          }
+        }
+      }
+      else {
         switch (mappair(p)) {
         case ter_wall:
         case ter_wall_immutable:
@@ -691,7 +719,7 @@ int write_rooms(dungeon_t *d, FILE *f)
   p = htobe16(d->num_rooms);
   fwrite(&p, 2, 1, f);
   for (i = 0; i < d->num_rooms; i++) {
-    /* write order is xpos, ypos, width, height */
+    /* write order is x_pos, y_pos, width, height */
     p = d->rooms[i].position[dim_x];
     fwrite(&p, 1, 1, f);
     p = d->rooms[i].position[dim_y];
@@ -1237,4 +1265,176 @@ void render_tunnel_distance_map(dungeon_t *d)
     }
     putchar('\n');
   }
+}
+
+int32_t character_cmp(const void *first, const void *second) {
+  character_t *f = (character_t *) first;
+  character_t *s = (character_t *) second;
+
+  if (f->next_turn == s->next_turn) {
+    return f->sequence - s->sequence;
+  }
+  else {
+    return f->next_turn - s->next_turn;
+  }
+}
+
+void init_characters(dungeon_t *d, int mons, heap_t *h) {
+  int i;
+  heap_init(h, character_cmp, NULL);
+
+  character_t *c = malloc(sizeof(character_t));
+  c->pc = malloc(sizeof(pc_t));
+  c->x_pos = d->rooms[0].position[dim_x];
+  c->y_pos = d->rooms[0].position[dim_y];
+  c->speed = 10;
+  c->is_alive = 1;
+  c->sequence = 0;
+  c->next_turn = 0;
+
+  d->character_map[c->y_pos][c->x_pos] = c;
+
+  heap_insert(h, c);
+
+  for (i = 0; i < mons; i++) { //generate monsters
+    int generating = 1;
+
+    while (generating) {
+      int y = rand_range(1, 19);
+      int x = rand_range(1, 79);
+
+      if (d->map[y][x] != ter_wall && d->map[y][x] != ter_wall_immutable) {
+        if (!((y > d->pc.position[dim_y] - 3 && y < d->pc.position[dim_y] + 3) &&
+              (x > d->pc.position[dim_x] - 3 && x < d->pc.position[dim_x] +3)))
+        {
+          generating = 0;
+          character_t *c = malloc(sizeof(character_t));
+          c->npc = malloc(sizeof(npc_t));
+          c->npc->characteristics = rand() & 0xf;
+          c->x_pos = x;
+          c->y_pos = y;
+          c->speed = rand_range(1, 20);
+          c->is_alive = 1;
+          c->sequence = i+1;
+          c->next_turn = 0;
+
+          d->character_map[y][x] = c;
+
+          heap_insert(h, c);
+        }
+      }
+    }
+  }
+}
+
+int move(dungeon_t *d, character_t *c) {
+  if (c->npc->characteristics & BIT_TUNNEL) {
+    if (c->npc->characteristics & BIT_TELE) {
+      int y, x, xlow = c->x_pos - 1, ylow = c->y_pos - 1;
+      for (y = c->y_pos - 1; y <= c->y_pos + 1; y++) {
+        for (x = c->x_pos - 1; x <= c->x_pos + 1; x++) {
+          if (y != c->y_pos || y != c->x_pos) {
+            if (d->pc_tunnel[y][x] < d->pc_tunnel[ylow][xlow]) {
+              ylow = y;
+              xlow = x;
+            }
+          }
+        }
+      }
+
+      if (d->map[ylow][xlow] == ter_wall) {
+        d->hardness[ylow][xlow] -= 85;
+        if (d->hardness[ylow][xlow] <= 0) {
+          d->map[ylow][xlow] = ter_floor_hall;
+          d->character_map[c->y_pos][c->x_pos] = NULL;
+          c->y_pos = ylow;
+          c->x_pos = xlow;
+          d->character_map[c->y_pos][c->x_pos] = c;
+        }
+      }
+    }
+    else {
+      int move = 1;
+      while (move) {
+        int dy = rand_range(-1, 1);
+        int dx = rand_range(-1, 1);
+
+        if (dy != 0 || dx != 0) {
+          if (d->map[c->y_pos+dy][c->x_pos+dx] != ter_wall_immutable) {
+            if (d->map[c->y_pos+dy][c->x_pos+dx] == ter_wall) {
+              d->hardness[c->y_pos+dy][c->x_pos+dx] -= 85;
+              move = 0;
+
+              if (d->hardness[c->y_pos+dy][c->x_pos+dx] <= 0) {
+                d->map[c->y_pos+dy][c->x_pos+dx] = ter_floor_hall;
+                d->character_map[c->y_pos][c->x_pos] = NULL;
+                c->y_pos += dy;
+                c->x_pos += dx;
+                d->character_map[c->y_pos][c->x_pos] = c;
+              }
+            }
+            else {
+              d->character_map[c->y_pos][c->x_pos] = NULL;
+              c->y_pos += dy;
+              c->x_pos += dx;
+              d->character_map[c->y_pos][c->x_pos] = c;
+              move = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  else {
+    if (c->npc->characteristics & BIT_TELE) {
+      int y, x, xlow = c->x_pos - 1, ylow = c->y_pos - 1;
+      for (y = c->y_pos - 1; y <= c->y_pos + 1; y++) {
+        for (x = c->x_pos - 1; x <= c->x_pos + 1; x++) {
+          if (y != c->y_pos || x != c->x_pos) {
+            if (d->pc_distance[y][x] < d->pc_distance[ylow][xlow]) {
+              ylow = y;
+              xlow = x;
+            }
+          }
+        }
+      }
+      d->character_map[c->y_pos][c->x_pos] = NULL;
+      c->y_pos = ylow;
+      c->x_pos = xlow;
+      d->character_map[c->y_pos][c->x_pos] = c;
+    }
+    else {
+      int move = 1;
+      while (move) {
+        int dy = rand_range(-1, 1);
+        int dx = rand_range(-1, 1);
+
+        if (dy != 0 || dx != 0) {
+          if (d->map[c->y_pos+dy][c->x_pos+dx] != ter_wall &&
+            d->map[c->y_pos+dy][c->x_pos+dx] != ter_wall_immutable)
+            {
+              d->character_map[c->y_pos][c->x_pos] = NULL;
+              c->y_pos += dy;
+              c->x_pos += dx;
+              d->character_map[c->y_pos][c->x_pos] = c;
+              move = 0;
+            }
+          }
+        }
+      }
+    }
+
+    render_dungeon(d);
+
+    if (c->y_pos == d->pc.position[dim_y] && c->x_pos == d->pc.position[dim_x]) {
+      return 1;
+    }
+
+    return 0;
+
+
+  }
+
+void move_tunnel(dungeon_t *d, character_t *c, int tele) {
+
 }

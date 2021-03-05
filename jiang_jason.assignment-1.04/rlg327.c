@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "dungeon.h"
 #include "path.h"
@@ -22,6 +23,8 @@ int main(int argc, char *argv[]) {
   uint32_t i;
   uint32_t do_load, do_save, do_seed, do_image, do_save_seed, do_save_image;
   uint32_t long_arg;
+  int mons = DEFAULT_MONS;
+  heap_t h;
   char *save_file;
   char *load_file;
   char *pgm_file;
@@ -112,6 +115,18 @@ int main(int argc, char *argv[]) {
             pgm_file = argv[++i];
           }
           break;
+          case 'n':
+            if ((!long_arg && argv[i][2]) ||
+                (long_arg && strcmp(argv[i], "-nummon"))) {
+              usage(argv[0]);
+            }
+
+            if ((argc > i + 1) && argv[i + 1][0] != '-') {
+              /* There is another argument, and it's not a switch, so *
+               * we'll treat it as a save file and try to load it.    */
+              mons = atoi(argv[++i]);
+            }
+            break;
         default:
           usage(argv[0]);
         }
@@ -141,25 +156,45 @@ int main(int argc, char *argv[]) {
     gen_dungeon(&d);
   }
 
-  if (!do_load) {
-    /* Set a valid position for the PC */
-    d.pc.position[dim_x] = (d.rooms[0].position[dim_x] +
-                            (rand() % d.rooms[0].size[dim_x]));
-    d.pc.position[dim_y] = (d.rooms[0].position[dim_y] +
-                            (rand() % d.rooms[0].size[dim_y]));
+  //initialize character array
+  //initialize heap - put all characters in heap
+  //nextturn = nextturn + 1000/speed
+
+  init_characters(&d, mons, &h);
+
+  uint8_t win = 2;
+  character_t *c;
+
+  while (win == 2) {
+    //pull from heap
+    //move that character
+    //check for kills/win/lose
+    //if character is pc, render
+    //update next_turn
+    //insert character back into heap
+
+    dijkstra(&d);
+    dijkstra_tunnel(&d);
+
+    c = heap_remove_min(&h);
+    if (c->pc) {
+        render_dungeon(&d);
+    }
+    else {
+      if (move(&d, c)) {
+        printf("\n\nYou have lost\n");
+        return 0;
+      }
+      dijkstra(&d);
+      dijkstra_tunnel(&d);
+    }
+
+    c->next_turn = c->next_turn + 1000/c->speed;
+    heap_insert(&h, c);
+    usleep(250000);
   }
 
-  printf("PC is at (y, x): %d, %d\n",
-         d.pc.position[dim_y], d.pc.position[dim_x]);
 
-  render_dungeon(&d);
-
-  dijkstra(&d);
-  dijkstra_tunnel(&d);
-  render_distance_map(&d);
-  render_tunnel_distance_map(&d);
-  render_hardness_map(&d);
-  render_movement_cost_map(&d);
 
   if (do_save) {
     if (do_save_seed) {

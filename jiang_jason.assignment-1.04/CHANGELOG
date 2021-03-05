@@ -1,0 +1,65 @@
+02/08/21: Created project. Created source files, Makefile, and CHANGELOG.
+          Added main function and function declarations.
+
+02/09/21 17:48: Wrote setup() and print_dungeon() to test setting up the dungeon.
+                print_dungeon prints 9's for the outer walls and '.' for every cell - will be modified later
+                Added random hardness to every cell. - Will need to improve later
+                Created room struct.
+                Wrote Makefile to compile with header file.
+
+02/10/21 17:57: Added '-g' switch to header file for debugging
+                Wrote logic for generating rooms and placing them
+                Modified print_dungeon() to only print rooms
+
+02/11/21 18:52: Fixed the logic for generating rooms and placing them
+                Wrote logic to prevent generation of rooms next to each other
+
+02/11/21 20:30: Added logic to connect rooms
+                Updated print_dungeon() to print corridors
+                Added connection from rooms[0] to rooms[num_rooms - 1] to make a cycle
+                Addedd random generation of staircases
+
+02/11/21 21:00: Created README
+                Added 'clean' target in header
+                Preparing to zip and submit
+
+02/12/21 00:21: Added check for room corner contact (saw post on Piazza and needed to fix)
+
+--- assignment 1.02
+
+02/15/21: Created folder for assignment-1.02
+
+02/17/21: Moved to professor's 1.01 solution
+          Changed rooms array to be dynamically allocated
+          Built path string
+
+02/18/21: 13:44: Wrote reading (loading) dungeon logic
+                 Switched back to personal code
+                 Copied over loading logic to personal code
+                 Moved big chunk of generation logic into a separate function
+
+02/18/21: 19:26: Finished loading logic
+                 Added PC to randomly generated dungeon
+-- assignment 1.03
+
+02/23/21: Added dungeon struct
+          Added logic for saving to disk from prof solution
+          Changed functions to make use of dungeon struct
+
+02/25/21: Fully switched to prof solution
+          Created dijkstra_nontunnel() and dijkstra_tunnel() functions, copying
+            from dijkstra_corridor()
+          Removed unnecessary code from above functions
+          Added distance maps to dungeon struct
+          Created render_non_tunnel_map() and render_tunnel_map() to print
+            distance maps
+
+-- assignment 1.04
+
+03/03/21: Built off prof code
+          Created characters.h
+          Added init_characters() to dungeon.c
+
+03/04/21: Added game loop into main
+          Added check for distance map updates
+          Added check for wins

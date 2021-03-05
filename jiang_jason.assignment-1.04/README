@@ -1,0 +1,13 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the end goal of creating a rogue-like game.
+
+This program generates a dungeon to standard output. The dungeon is filled with monsters and a pc character.
+
+The number of monsters can be passed in by a switch "--nummon", followed by the number desired.
+
+The monsters are given random attributes and moves automatically according to them. The PC does not move.
+
+The game ends if either the PC dies or all monsters die.
