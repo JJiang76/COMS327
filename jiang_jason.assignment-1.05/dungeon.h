@@ -3,7 +3,7 @@
 
 # include "heap.h"
 # include "dims.h"
-# include "characters.h"
+# include "character.h"
 
 #define DUNGEON_X              80
 #define DUNGEON_Y              21
@@ -13,6 +13,11 @@
 #define ROOM_MIN_Y             3
 #define ROOM_MAX_X             20
 #define ROOM_MAX_Y             15
+#define VISUAL_RANGE           15
+#define PC_SPEED               10
+#define NPC_MIN_SPEED          5
+#define NPC_MAX_SPEED          15
+#define MAX_MONSTERS           15
 #define SAVE_DIR               ".rlg327"
 #define DUNGEON_SAVE_FILE      "dungeon"
 #define DUNGEON_SAVE_SEMANTIC  "RLG327-" TERM
@@ -22,6 +27,8 @@
 #define mapxy(x, y) (d->map[y][x])
 #define hardnesspair(pair) (d->hardness[pair[dim_y]][pair[dim_x]])
 #define hardnessxy(x, y) (d->hardness[y][x])
+#define charpair(pair) (d->character[pair[dim_y]][pair[dim_x]])
+#define charxy(x, y) (d->character[y][x])
 
 typedef enum __attribute__ ((__packed__)) terrain_type {
   ter_debug,
@@ -40,7 +47,6 @@ typedef struct room {
   pair_t size;
 } room_t;
 
-
 typedef struct dungeon {
   uint32_t num_rooms;
   room_t *rooms;
@@ -56,8 +62,19 @@ typedef struct dungeon {
   uint8_t hardness[DUNGEON_Y][DUNGEON_X];
   uint8_t pc_distance[DUNGEON_Y][DUNGEON_X];
   uint8_t pc_tunnel[DUNGEON_Y][DUNGEON_X];
-  character_t *character_map[DUNGEON_Y][DUNGEON_X];
-  pc_t pc;
+  character_t *character[DUNGEON_Y][DUNGEON_X];
+  character_t pc;
+  heap_t events;
+  uint16_t num_monsters;
+  uint16_t max_monsters;
+  uint32_t character_sequence_number;
+  /* Game time isn't strictly necessary.  It's implicit in the turn number *
+   * of the most recent thing removed from the event queue; however,       *
+   * including it here--and keeping it up to date--provides a measure of   *
+   * convenience, e.g., the ability to create a new event without explicit *
+   * information from the current event.                                   */
+  uint32_t time;
+  uint32_t is_new;
 } dungeon_t;
 
 void init_dungeon(dungeon_t *d);
@@ -71,9 +88,5 @@ void render_distance_map(dungeon_t *d);
 void render_tunnel_distance_map(dungeon_t *d);
 void render_hardness_map(dungeon_t *d);
 void render_movement_cost_map(dungeon_t *d);
-
-void init_characters(dungeon_t *d, int mons, heap_t *h);
-
-void move(dungeon_t *d, character_t *c);
 
 #endif
