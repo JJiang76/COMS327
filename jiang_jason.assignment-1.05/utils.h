@@ -22,4 +22,6 @@
 
 int makedirectory(char *dir);
 
+void init_terminal();
+
 #endif

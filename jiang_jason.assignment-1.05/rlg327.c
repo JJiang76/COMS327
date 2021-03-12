@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ncurses.h>
 
 #include "dungeon.h"
 #include "pc.h"
@@ -85,10 +86,10 @@ int main(int argc, char *argv[])
   char *load_file;
   char *pgm_file;
   uint32_t delay = 33000;
-  
+
   /* Quiet a false positive from valgrind. */
   memset(&d, 0, sizeof (d));
-  
+
   /* Default behavior: Seed with the time, generate a new dungeon, *
    * and don't write to disk.                                      */
   do_load = do_save = do_image = do_save_seed = do_save_image = 0;
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
    * And the final switch, '--image', allows me to create a dungeon *
    * from a PGM image, so that I was able to create those more      *
    * interesting test dungeons for you.                             */
- 
+
  if (argc > 1) {
     for (i = 1, long_arg = 0; i < argc; i++, long_arg = 0) {
       if (argv[i][0] == '-') { /* All switches start with a dash */
@@ -206,12 +207,13 @@ int main(int argc, char *argv[])
   }
 
   if (!do_load && !do_image) {
-    printf("Seed is %ld.\n", seed);
+    printw("Seed is %ld.\n", seed);
   } else {
-    printf("Seed is %ld.  Dungeon loaded from file.\n", seed);
+    printw("Seed is %ld.  Dungeon loaded from file.\n", seed);
   }
   srand(seed);
 
+  init_terminal();
   init_dungeon(&d);
 
   if (do_load) {
@@ -260,6 +262,8 @@ int main(int argc, char *argv[])
     }
   }
 
+  endwin();
+
   printf("%s", pc_is_alive(&d) ? victory : tombstone);
   printf("You defended your life in the face of %u deadly beasts.\n"
          "You avenged the cruel and untimely murders of %u "
@@ -269,6 +273,8 @@ int main(int argc, char *argv[])
   pc_delete(d.pc.pc);
 
   delete_dungeon(&d);
+
+
 
   return 0;
 }

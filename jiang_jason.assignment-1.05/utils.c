@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <stdio.h>
+#include <ncurses.h>
 
 #include "utils.h"
 
@@ -39,4 +40,12 @@ int makedirectory(char *dir)
   }
 
   return 0;
+}
+
+void init_terminal() {
+  initscr();
+  raw();
+  noecho();
+  curs_set(0);
+  keypad(stdscr, TRUE);
 }
