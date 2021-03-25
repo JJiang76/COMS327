@@ -207,9 +207,9 @@ move.c,167
 void do_combat(17,250
 void move_character(30,571
 void do_moves(46,1052
-void dir_nearest_wall(120,3298
-uint32_t against_wall(132,3713
-uint32_t in_corner(144,4201
+void dir_nearest_wall(121,3321
+uint32_t against_wall(133,3736
+uint32_t in_corner(145,4224
 
 move.h,104
 # define MOVE_H2,15
@@ -303,13 +303,18 @@ path.h,93
 # define HARDNESS_PER_TURN 4,32
 typedef struct dungeon dungeon_t;6,63
 
-pc.c,157
-void pc_delete(11,135
-uint32_t pc_is_alive(18,195
-void place_pc(23,257
-void config_pc(33,684
-uint32_t pc_next_pos(53,1102
-uint32_t pc_in_room(173,5898
+pc.c,303
+void pc_delete(12,156
+uint32_t pc_is_alive(19,216
+void place_pc(24,278
+void config_pc(34,705
+uint32_t hit_wall(54,1123
+uint32_t on_upstairs(61,1389
+uint32_t on_downstairs(65,1508
+void print_list(69,1631
+void display_monsters(82,1955
+uint32_t pc_next_pos(119,2709
+uint32_t pc_in_room(192,4384
 
 pc.h,99
 # define PC_H2,13

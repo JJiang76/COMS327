@@ -1,0 +1,32 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the end goal of creating a rogue-like game.
+
+This program generates a dungeon to standard output. The dungeon is filled with monsters and a pc character.
+
+The user is able to control the PC character, giving it commands to move with keystrokes.
+
+The available commands are (from the assignment specs):
+
+7 or y - Attempt to move PC one cell to the upper left.
+8 or k - Attempt to move PC one cell up.
+9 or u - Attempt to move PC one cell to the upper right.
+6 or l - Attempt to move PC one cell to the right.
+3 or n - Attempt to move PC one cell to the lower right.
+2 or j - Attempt to move PC one cell down.
+1 or b - Attempt to move PC one cell to the lower left.
+4 or h - Attempt to move PC one cell to the left.
+> - Attempt to go down stairs. Works only if standing on down staircase.
+< - Attempt to go up stairs. Works only if standing on up staircase.
+5 or space or . - Rest for a turn. NPCs still move.
+m - Display a list of monsters in the dungeon, with their symbol and position relativeto the PC (e.g.: “c, 2 north and 14 west”).
+up arrow - When displaying monster list, if entire list does not fit in screen and not currently at top of list, scroll list up.
+down arrow - When displaying monster list, if entire list does not fit in screen and not currently at bottom of list, scroll list down.
+escape - When displaying monster list, return to character control.
+Q - Quit the game
+
+If the user inputs a move that cannot execute (like running into a wall), a turn is not consumed.
+
+The game ends either when the player dies or all the monsters die.

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <ncurses.h>
 
 #include "string.h"
 
@@ -50,121 +51,139 @@ void config_pc(dungeon_t *d)
   dijkstra_tunnel(d);
 }
 
+uint32_t hit_wall(dungeon_t *d, pair_t dir) {
+  return mapxy(d->pc.position[dim_x] + dir[dim_x],
+    d->pc.position[dim_y] + dir[dim_y]) == ter_wall ||
+    mapxy(d->pc.position[dim_x] + dir[dim_x],
+      d->pc.position[dim_y] + dir[dim_y]) == ter_wall_immutable;
+}
+
+uint32_t on_upstairs(dungeon_t *d) {
+  return mapxy(d->pc.position[dim_x], d->pc.position[dim_y]) == ter_stairs_up;
+}
+
+uint32_t on_downstairs(dungeon_t *d) {
+  return mapxy(d->pc.position[dim_x], d->pc.position[dim_y]) == ter_stairs_down;
+}
+
+void print_list(dungeon_t *d, WINDOW *win, character_t **list, int size, int start) {
+  int i;
+  int x = 3;
+  int y = start;
+
+  for (i = 0; i < size; i++) {
+    mvwprintw(win, y, x, "%s is in position (%d, %d).",
+      list[i]->symbol, list[i]->position[dim_y], list[i]->position[dim_x]);
+    y++;
+    wrefresh(win);
+  }
+}
+
+void display_monsters(dungeon_t *d) {
+  uint32_t displaying = 1, i, j, k = 0;
+  int32_t key;
+
+  character_t **char_list = malloc(sizeof(character_t) * d->max_monsters);
+
+  for (i = 0; i < DUNGEON_Y; i++) {
+    for (j = 0; j< DUNGEON_X; j++) {
+      if (d->character[i][j] && d->character[i][j]->npc != NULL) {
+        char_list[k] = d->character[i][j];
+        k++;
+      }
+    }
+  }
+
+  WINDOW *monster_win = newwin(17, 40, 2, 20);
+  box(monster_win, 0, 0);
+
+  mvwprintw(monster_win, 1, 8, "There are %d monsters", k);
+
+//  print_list(d, monster_win, char_list, k - 1, 2);
+
+  wrefresh(monster_win);
+
+  keypad(stdscr, FALSE);
+
+  while (displaying) {
+    key = getch();
+
+    switch(key) {
+      case 27:
+        displaying = 0;
+        break;
+    }
+  }
+}
+
 uint32_t pc_next_pos(dungeon_t *d, pair_t dir)
 {
-  static uint32_t have_seen_corner = 0;
-  static uint32_t count = 0;
-  static int target_room = -1;
-  static int target_is_valid = 0;
-
-  if (target_is_valid &&
-      (d->pc.position[dim_x] == d->rooms[target_room].position[dim_x]) &&
-      (d->pc.position[dim_y] == d->rooms[target_room].position[dim_y])) {
-    target_is_valid = 0;
-  }
-  
+  uint32_t moved = 0, key, no_op;
   dir[dim_y] = dir[dim_x] = 0;
 
-  if (in_corner(d, &d->pc)) {
-    if (!count) {
-      count = 1;
-    }
-    have_seen_corner = 1;
-  }
+  while(!moved) {
+    no_op = 0;
+    key = getch();
 
-  /* First, eat anybody standing next to us. */
-  if (charxy(d->pc.position[dim_x] - 1, d->pc.position[dim_y] - 1)) {
-    dir[dim_y] = -1;
-    dir[dim_x] = -1;
-  } else if (charxy(d->pc.position[dim_x], d->pc.position[dim_y] - 1)) {
-    dir[dim_y] = -1;
-  } else if (charxy(d->pc.position[dim_x] + 1, d->pc.position[dim_y] - 1)) {
-    dir[dim_y] = -1;
-    dir[dim_x] = 1;
-  } else if (charxy(d->pc.position[dim_x] - 1, d->pc.position[dim_y])) {
-    dir[dim_x] = -1;
-  } else if (charxy(d->pc.position[dim_x] + 1, d->pc.position[dim_y])) {
-    dir[dim_x] = 1;
-  } else if (charxy(d->pc.position[dim_x] - 1, d->pc.position[dim_y] + 1)) {
-    dir[dim_y] = 1;
-    dir[dim_x] = -1;
-  } else if (charxy(d->pc.position[dim_x], d->pc.position[dim_y] + 1)) {
-    dir[dim_y] = 1;
-  } else if (charxy(d->pc.position[dim_x] + 1, d->pc.position[dim_y] + 1)) {
-    dir[dim_y] = 1;
-    dir[dim_x] = 1;
-  } else if (!have_seen_corner || count < 250) {
-    /* Head to a corner and let most of the NPCs kill each other off */
-    if (count) {
-      count++;
+    switch(key) {
+      case 7: case 'y':
+        dir[dim_y] = -1; dir[dim_x] = -1; break;
+      case 8: case 'k':
+        dir[dim_y] = -1; break;
+      case 9: case 'u':
+        dir[dim_y] = -1; dir[dim_x] = 1; break;
+      case 6: case 'l':
+        dir[dim_x] = 1; break;
+      case 3: case 'n':
+        dir[dim_y] = 1; dir[dim_x] = 1; break;
+      case 2: case 'j':
+        dir[dim_y] = 1; break;
+      case 1: case 'b':
+        dir[dim_y] = 1; dir[dim_x] = -1; break;
+      case 4: case 'h':
+        dir[dim_x] = -1; break;
+      case 5: case ' ': case '.':
+        dir[dim_y] = dir[dim_x] = 0; break;
+      case '>':
+        if (on_downstairs(d)) {
+          mvprintw(0, 1, "Going down!");
+          refresh();
+          dir[dim_y] = dir[dim_x] = 0;
+        }
+        else {
+          no_op = 1;
+        }
+        break;
+      case '<':
+      if (on_upstairs(d)) {
+        mvprintw(0, 1, "Going up!");
+        refresh();
+        dir[dim_y] = dir[dim_x] = 0;
+      }
+      else {
+        no_op = 1;
+      }
+      break;
+      case 'm':
+        display_monsters(d);
+        render_dungeon(d);
+        no_op = 1;
+        break;
+      case 'Q':
+        d->pc.alive = 0; break;
+      default:
+        mvprintw(0, 1, "Use directional buttons to move!");
+        refresh();
+        no_op = 1;
     }
-    if (!against_wall(d, &d->pc) && ((rand() & 0x111) == 0x111)) {
-      dir[dim_x] = (rand() % 3) - 1;
-      dir[dim_y] = (rand() % 3) - 1;
-    } else {
-      dir_nearest_wall(d, &d->pc, dir);
+    if (!hit_wall(d, dir) && !no_op) {
+        moved = 1;
     }
-  } else {
-    /* And after we've been there, let's cycle through the rooms, *
-     * one-by-one, until the game ends                            */
-    if (target_room == -1) {
-      target_room = 0;
-      target_is_valid = 1;
+    else {
+      mvprintw(0, 1, "Try again - make a smarter move");
+      refresh();
+      dir[dim_y] = dir[dim_x] = 0;
     }
-    if (!target_is_valid) {
-      target_is_valid = 1;
-      target_room = (target_room + 1) % d->num_rooms;
-    }
-    /* When against the dungeon border, always head toward the target; *
-     * otherwise, head toward the target with 1/3 probability.         */
-    if (against_wall(d, &d->pc) || rand_under(1, 3)) {
-      dir[dim_x] = ((d->pc.position[dim_x] >
-		     d->rooms[target_room].position[dim_x]) ? -1 : 1);
-      dir[dim_y] = ((d->pc.position[dim_y] >
-		     d->rooms[target_room].position[dim_y]) ? -1 : 1);
-    } else {
-      /* Else we'll choose a random direction */
-      dir[dim_x] = (rand() % 3) - 1;
-      dir[dim_y] = (rand() % 3) - 1;
-    }
-  }
-
-  /* Don't move to an unoccupied location if that places us next to a monster */
-  if (!charxy(d->pc.position[dim_x] + dir[dim_x],
-              d->pc.position[dim_y] + dir[dim_y]) &&
-      ((charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-               d->pc.position[dim_y] + dir[dim_y] - 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-                d->pc.position[dim_y] + dir[dim_y] - 1) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-               d->pc.position[dim_y] + dir[dim_y]) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-                d->pc.position[dim_y] + dir[dim_y]) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-               d->pc.position[dim_y] + dir[dim_y] + 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] - 1,
-                d->pc.position[dim_y] + dir[dim_y] + 1) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x],
-               d->pc.position[dim_y] + dir[dim_y] - 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x],
-                d->pc.position[dim_y] + dir[dim_y] - 1) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x],
-               d->pc.position[dim_y] + dir[dim_y] + 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x],
-                d->pc.position[dim_y] + dir[dim_y] + 1) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-               d->pc.position[dim_y] + dir[dim_y] - 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-                d->pc.position[dim_y] + dir[dim_y] - 1) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-               d->pc.position[dim_y] + dir[dim_y]) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-                d->pc.position[dim_y] + dir[dim_y]) != &d->pc)) ||
-       (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-               d->pc.position[dim_y] + dir[dim_y] + 1) &&
-        (charxy(d->pc.position[dim_x] + dir[dim_x] + 1,
-                d->pc.position[dim_y] + dir[dim_y] + 1) != &d->pc)))) {
-    dir[dim_x] = dir[dim_y] = 0;
   }
 
   return 0;
