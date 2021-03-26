@@ -1,8 +1,8 @@
 #ifndef UTILS_H
 # define UTILS_H
 
-# include <assert.h>
-# include <stdlib.h>
+# include <cassert>
+# include <cstdlib>
 
 /* Returns true if random float in [0,1] is less than *
  * numerator/denominator.  Uses only integer math.    */
