@@ -4,11 +4,13 @@
 # include <cstdint>
 
 # include "dims.h"
+# include "dungeon.h"
 
 class dungeon_t;
 
 class pc_t {
-  
+public:
+
 };
 
 void pc_delete(pc_t *pc);
