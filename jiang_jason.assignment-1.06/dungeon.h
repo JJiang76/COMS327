@@ -78,6 +78,7 @@ public:
   uint32_t time;
   uint32_t is_new;
   uint32_t quit;
+  uint8_t fog;
 };
 
 void init_dungeon(dungeon_t *d);

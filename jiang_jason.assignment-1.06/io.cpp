@@ -197,42 +197,112 @@ static character_t *io_nearest_visible_monster(dungeon_t *d)
   return n;
 }
 
-void io_display(dungeon_t *d)
+void io_display(dungeon_t *d, int fog)
 {
-  uint32_t y, x;
+  int y, x;
   character_t *c;
+  int pcy = d->pc.position[dim_y];
+  int pcx = d->pc.position[dim_x];
 
   clear();
-  for (y = 0; y < 21; y++) {
-    for (x = 0; x < 80; x++) {
-      if (d->character[y][x]) {
-        mvaddch(y + 1, x, d->character[y][x]->symbol);
-      } else {
-        switch (mapxy(x, y)) {
-        case ter_wall:
-        case ter_wall_immutable:
-          mvaddch(y + 1, x, ' ');
-          break;
-        case ter_floor:
-        case ter_floor_room:
-          mvaddch(y + 1, x, '.');
-          break;
-        case ter_floor_hall:
-          mvaddch(y + 1, x, '#');
-          break;
-        case ter_debug:
-          mvaddch(y + 1, x, '*');
-          break;
-        case ter_stairs_up:
-          mvaddch(y + 1, x, '<');
-          break;
-        case ter_stairs_down:
-          mvaddch(y + 1, x, '>');
-          break;
-        default:
- /* Use zero as an error symbol, since it stands out somewhat, and it's *
-  * not otherwise used.                                                 */
-          mvaddch(y + 1, x, '0');
+  if (fog) {
+    for (y = 0; y < 21; y++) {
+      for (x = 0; x < 80; x++) {
+        if (y >= pcy - 2 && y <= pcy + 2 && x >= pcx - 2 && x <= pcx + 2) {
+          attron(COLOR_PAIR(COLOR_YELLOW));
+
+          if (d->character[y][x]) {
+            mvaddch(y + 1, x, d->character[y][x]->symbol);
+          }
+          else {
+            switch (mapxy(x, y)) {
+            case ter_wall:
+            case ter_wall_immutable:
+              mvaddch(y + 1, x, ' ');
+              break;
+            case ter_floor:
+            case ter_floor_room:
+              mvaddch(y + 1, x, '.');
+              break;
+            case ter_floor_hall:
+              mvaddch(y + 1, x, '#');
+              break;
+            case ter_debug:
+              mvaddch(y + 1, x, '*');
+              break;
+            case ter_stairs_up:
+              mvaddch(y + 1, x, '<');
+              break;
+            case ter_stairs_down:
+              mvaddch(y + 1, x, '>');
+              break;
+            default:
+              mvaddch(y + 1, x, '0');
+            }
+          }
+          attroff(COLOR_PAIR(COLOR_YELLOW));
+        }
+        else {
+          switch(d->pc.pc->remembered[y][x]) {
+            case ter_wall:
+            case ter_wall_immutable:
+              mvaddch(y + 1, x, ' ');
+              break;
+            case ter_floor:
+            case ter_floor_room:
+              mvaddch(y + 1, x, '.');
+              break;
+            case ter_floor_hall:
+              mvaddch(y + 1, x, '#');
+              break;
+            case ter_debug:
+              mvaddch(y + 1, x, '*');
+              break;
+            case ter_stairs_up:
+              mvaddch(y + 1, x, '<');
+              break;
+            case ter_stairs_down:
+              mvaddch(y + 1, x, '>');
+              break;
+            default:
+              mvaddch(y + 1, x, '0');
+          }
+        }
+      }
+    }
+  }
+  else {
+    for (y = 0; y < 21; y++) {
+      for (x = 0; x < 80; x++) {
+        if (d->character[y][x]) {
+          mvaddch(y + 1, x, d->character[y][x]->symbol);
+        } else {
+          switch (mapxy(x, y)) {
+          case ter_wall:
+          case ter_wall_immutable:
+            mvaddch(y + 1, x, ' ');
+            break;
+          case ter_floor:
+          case ter_floor_room:
+            mvaddch(y + 1, x, '.');
+            break;
+          case ter_floor_hall:
+            mvaddch(y + 1, x, '#');
+            break;
+          case ter_debug:
+            mvaddch(y + 1, x, '*');
+            break;
+          case ter_stairs_up:
+            mvaddch(y + 1, x, '<');
+            break;
+          case ter_stairs_down:
+            mvaddch(y + 1, x, '>');
+            break;
+          default:
+   /* Use zero as an error symbol, since it stands out somewhat, and it's *
+    * not otherwise used.                                                 */
+            mvaddch(y + 1, x, '0');
+          }
         }
       }
     }
@@ -243,23 +313,51 @@ void io_display(dungeon_t *d)
   mvprintw(22, 1, "%d known %s.", d->num_monsters,
            d->num_monsters > 1 ? "monsters" : "monster");
   mvprintw(22, 30, "Nearest visible monster: ");
-  if ((c = io_nearest_visible_monster(d))) {
-    attron(COLOR_PAIR(COLOR_RED));
-    mvprintw(22, 55, "%c at %d %c by %d %c.",
-             c->symbol,
-             abs(c->position[dim_y] - d->pc.position[dim_y]),
-             ((c->position[dim_y] - d->pc.position[dim_y]) <= 0 ?
-              'N' : 'S'),
-             abs(c->position[dim_x] - d->pc.position[dim_x]),
-             ((c->position[dim_x] - d->pc.position[dim_x]) <= 0 ?
-              'W' : 'E'));
-    attroff(COLOR_PAIR(COLOR_RED));
-  } else {
-    attron(COLOR_PAIR(COLOR_BLUE));
-    mvprintw(22, 55, "NONE.");
-    attroff(COLOR_PAIR(COLOR_BLUE));
-  }
 
+  if (d->fog) {
+    if ((c = io_nearest_visible_monster(d))) {
+      if (pcy >= c->position[dim_y] - 2 && pcy <= c->position[dim_y] + 2
+        && pcx >= c->position[dim_x] - 2 && pcx <= c->position[dim_x] + 2) {
+          attron(COLOR_PAIR(COLOR_RED));
+          mvprintw(22, 55, "%c at %d %c by %d %c.",
+                   c->symbol,
+                   abs(c->position[dim_y] - d->pc.position[dim_y]),
+                   ((c->position[dim_y] - d->pc.position[dim_y]) <= 0 ?
+                    'N' : 'S'),
+                   abs(c->position[dim_x] - d->pc.position[dim_x]),
+                   ((c->position[dim_x] - d->pc.position[dim_x]) <= 0 ?
+                    'W' : 'E'));
+          attroff(COLOR_PAIR(COLOR_RED));
+      }
+      else {
+        attron(COLOR_PAIR(COLOR_BLUE));
+        mvprintw(22, 55, "You sense something near..");
+        attroff(COLOR_PAIR(COLOR_BLUE));
+      }
+    } else {
+      attron(COLOR_PAIR(COLOR_BLUE));
+      mvprintw(22, 55, "NONE.");
+      attroff(COLOR_PAIR(COLOR_BLUE));
+    }
+  }
+  else {
+    if ((c = io_nearest_visible_monster(d))) {
+      attron(COLOR_PAIR(COLOR_RED));
+      mvprintw(22, 55, "%c at %d %c by %d %c.",
+               c->symbol,
+               abs(c->position[dim_y] - d->pc.position[dim_y]),
+               ((c->position[dim_y] - d->pc.position[dim_y]) <= 0 ?
+               'N' : 'S'),
+               abs(c->position[dim_x] - d->pc.position[dim_x]),
+               ((c->position[dim_x] - d->pc.position[dim_x]) <= 0 ?
+               'W' : 'E'));
+      attroff(COLOR_PAIR(COLOR_RED));
+    } else {
+      attron(COLOR_PAIR(COLOR_BLUE));
+      mvprintw(22, 55, "NONE.");
+      attroff(COLOR_PAIR(COLOR_BLUE));
+    }
+  }
 
   io_print_message_queue(0, 0);
 
@@ -437,7 +535,7 @@ static void io_list_monsters(dungeon_t *d)
   free(c);
 
   /* And redraw the dungeon */
-  io_display(d);
+  io_display(d, d->fog);
 }
 
 void io_handle_input(dungeon_t *d)
@@ -521,7 +619,7 @@ void io_handle_input(dungeon_t *d)
     case 's':
       /* New command.  Return to normal display after displaying some   *
        * special screen.                                                */
-      io_display(d);
+      io_display(d, d->fog);
       fail_code = 1;
       break;
     case 'L':
@@ -534,6 +632,16 @@ void io_handle_input(dungeon_t *d)
       break;
     case 'm':
       io_list_monsters(d);
+      fail_code = 1;
+      break;
+    case 'f':
+      if (d->fog) {
+        d->fog = 0;
+      }
+      else {
+        d->fog = 1;
+      }
+      io_display(d, d->fog);
       fail_code = 1;
       break;
     case 'q':

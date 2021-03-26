@@ -30,6 +30,30 @@ void place_pc(dungeon_t *d)
                                       d->rooms->size[dim_x] - 1));
 }
 
+void look(dungeon_t *d) {
+  int i, j;
+
+  for (i = d->pc.position[dim_y] - 2; i <= d->pc.position[dim_y] + 2; i++) {
+    for (j = d->pc.position[dim_x] - 2; j <= d->pc.position[dim_x] + 2; j++) {
+      if (i < DUNGEON_Y && i >= 0 && j < DUNGEON_X && j >= 0) {
+        d->pc.pc->remembered[i][j] = d->map[i][j];
+      }
+    }
+  }
+}
+
+void init_vision(dungeon_t *d) {
+  int i, j;
+
+  for (i = 0; i < DUNGEON_Y; i++) {
+    for (j = 0; j < DUNGEON_X; j++) {
+      d->pc.pc->remembered[i][j] = ter_wall;
+    }
+  }
+
+  look(d);
+}
+
 void config_pc(dungeon_t *d)
 {
   memset(&d->pc, 0, sizeof (d->pc));
@@ -45,6 +69,8 @@ void config_pc(dungeon_t *d)
   d->pc.kills[kill_direct] = d->pc.kills[kill_avenged] = 0;
 
   d->character[d->pc.position[dim_y]][d->pc.position[dim_x]] = &d->pc;
+
+  init_vision(d);
 
   dijkstra(d);
   dijkstra_tunnel(d);

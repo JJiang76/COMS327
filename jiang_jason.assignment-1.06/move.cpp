@@ -167,7 +167,7 @@ void do_moves(dungeon_t *d)
     heap_insert(&d->events, update_event(d, e, 1000 / c->speed));
   }
 
-  io_display(d);
+  io_display(d, d->fog);
   if (pc_is_alive(d) && e->c == &d->pc) {
     c = e->c;
     d->time = e->time;
@@ -177,6 +177,7 @@ void do_moves(dungeon_t *d)
     e->c = NULL;
     event_delete(e);
     io_handle_input(d);
+    look(d);
   }
 }
 
@@ -314,7 +315,7 @@ uint32_t move_pc(dungeon_t *d, uint32_t dir)
   } else if (mappair(next) < ter_floor) {
     io_queue_message(wallmsg[rand() % (sizeof (wallmsg) /
                                        sizeof (wallmsg[0]))]);
-    io_display(d);
+    io_display(d, d->fog);
   }
 
   return 1;
