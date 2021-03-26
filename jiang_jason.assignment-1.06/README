@@ -1,0 +1,50 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the goal of creating a rogue-like game.
+
+This program generates a dungeon to standard output. The dungeon is filled with monsters and a pc character.
+
+(1.06) The dungeon is hidden behind fog of war. The PC can only see in a 5x5 square around itself.
+       The area that the PC can see is highlighted in orange.
+       Dungeon cells outside of the PC field of view shows the last seen state
+       The PC has access to two debugging codes, which are detailed below.
+
+The user is able to control the PC character, giving it commands to move with keystrokes.
+
+The (new) commands for assignment 1.06:
+
+f - toggles fog of war
+g - enters teleporting mode
+      - disables fog
+      - a '+' will appear. This is the 'cursor'
+      - can control the cursor with the same movement keys as controlling PC
+      - press 'g' again to teleport to the cursor position
+      - press 'r' to teleport to a random location
+      - if you teleport onto a monster, you will teleport onto it and kill it
+      - fog will start again after a teleport
+      - this will take one turn
+
+
+The (other) available commands are:
+
+7 or y - Attempt to move PC one cell to the upper left.
+8 or k - Attempt to move PC one cell up.
+9 or u - Attempt to move PC one cell to the upper right.
+6 or l - Attempt to move PC one cell to the right.
+3 or n - Attempt to move PC one cell to the lower right.
+2 or j - Attempt to move PC one cell down.
+1 or b - Attempt to move PC one cell to the lower left.
+4 or h - Attempt to move PC one cell to the left.
+> - Attempt to go down stairs. Works only if standing on down staircase.
+< - Attempt to go up stairs. Works only if standing on up staircase.
+5 or space or . - Rest for a turn. NPCs still move.
+m - Display a list of monsters in the dungeon, with their symbol and position relative to the PC (e.g.: “c, 2 north and 14 west”).
+up arrow - When displaying monster list, if entire list does not fit in screen and not currently at top of list, scroll list up.
+down arrow - When displaying monster list, if entire list does not fit in screen and not currently at bottom of list, scroll list down.
+escape - When displaying monster list, return to character control.
+Q - Quit the game
+
+
+The game ends either when the player dies or all the monsters die.

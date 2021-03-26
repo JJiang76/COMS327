@@ -197,7 +197,7 @@ static character_t *io_nearest_visible_monster(dungeon_t *d)
   return n;
 }
 
-void io_display(dungeon_t *d, int fog)
+void io_display(dungeon_t *d)
 {
   int y, x;
   character_t *c;
@@ -205,7 +205,7 @@ void io_display(dungeon_t *d, int fog)
   int pcx = d->pc.position[dim_x];
 
   clear();
-  if (fog) {
+  if (d->fog) {
     for (y = 0; y < 21; y++) {
       for (x = 0; x < 80; x++) {
         if (y >= pcy - 2 && y <= pcy + 2 && x >= pcx - 2 && x <= pcx + 2) {
@@ -280,8 +280,8 @@ void io_display(dungeon_t *d, int fog)
           switch (mapxy(x, y)) {
           case ter_wall:
           case ter_wall_immutable:
-            mvaddch(y + 1, x, ' ');
-            break;
+          mvaddch(y + 1, x, ' ');
+          break;
           case ter_floor:
           case ter_floor_room:
             mvaddch(y + 1, x, '.');
@@ -377,13 +377,98 @@ uint32_t io_teleport_pc(dungeon_t *d)
 {
   /* Just for fun. */
   pair_t dest;
+  uint32_t tele = 1;
+  int key;
 
-  do {
-    dest[dim_x] = rand_range(1, DUNGEON_X - 2);
-    dest[dim_y] = rand_range(1, DUNGEON_Y - 2);
-  } while (charpair(dest));
+  dest[dim_y] = d->pc.position[dim_y];
+  dest[dim_x] = d->pc.position[dim_x];
 
+  d->fog = 0;
+
+  while (tele) {
+    io_display(d);
+    mvaddch(dest[dim_y] + 1, dest[dim_x], '+');
+    switch (key = getch()) {
+      case 'r':
+        do {
+          dest[dim_x] = rand_range(1, DUNGEON_X - 2);
+          dest[dim_y] = rand_range(1, DUNGEON_Y - 2);
+        } while (charpair(dest));
+        tele = 0;
+        break;
+      case 'g':
+        tele = 0;
+        break;
+      case '7':
+      case 'y':
+      case KEY_HOME:
+        if (dest[dim_y] - 1 != 0 && dest[dim_x] - 1 != 0) {
+          dest[dim_y]--;
+          dest[dim_x]--;
+        }
+        break;
+      case '8':
+      case 'k':
+      case KEY_UP:
+        if (dest[dim_y] - 1 != 0) {
+          dest[dim_y]--;
+        }
+        break;
+      case '9':
+      case 'u':
+      case KEY_PPAGE:
+        if (dest[dim_y] - 1 != 0 && dest[dim_x] + 1 != 79) {
+          dest[dim_y]--;
+          dest[dim_x]++;
+        }
+        break;
+      case '6':
+      case 'l':
+      case KEY_RIGHT:
+        if (dest[dim_x] + 1 != 79) {
+          dest[dim_x]++;
+        }
+        break;
+      case '3':
+      case 'n':
+      case KEY_NPAGE:
+        if (dest[dim_y] + 1 != 20 && dest[dim_x] + 1 != 79) {
+          dest[dim_y]++;
+          dest[dim_x]++;
+        }
+        break;
+      case '2':
+      case 'j':
+      case KEY_DOWN:
+        if (dest[dim_y] + 1 != 20) {
+          dest[dim_y]++;
+        }
+        break;
+      case '1':
+      case 'b':
+      case KEY_END:
+        if (dest[dim_y] + 1 != 20 && dest[dim_x] - 1 != 0) {
+          dest[dim_y]++;
+          dest[dim_x]--;
+        }
+        break;
+      case '4':
+      case 'h':
+      case KEY_LEFT:
+        if (dest[dim_x] - 1 != 0) {
+          dest[dim_x]--;
+        }
+        break;
+      default:
+        mvprintw(0, 0, "Unbound key: %#o ", key);
+        break;
+    }
+  }
+
+  move_character(d, &d->pc, dest);
+  
   d->character[d->pc.position[dim_y]][d->pc.position[dim_x]] = NULL;
+
   d->character[dest[dim_y]][dest[dim_x]] = &d->pc;
 
   d->pc.position[dim_y] = dest[dim_y];
@@ -395,6 +480,9 @@ uint32_t io_teleport_pc(dungeon_t *d)
 
   dijkstra(d);
   dijkstra_tunnel(d);
+
+  look(d);
+  d->fog = 1;
 
   return 0;
 }
@@ -535,7 +623,7 @@ static void io_list_monsters(dungeon_t *d)
   free(c);
 
   /* And redraw the dungeon */
-  io_display(d, d->fog);
+  io_display(d);
 }
 
 void io_handle_input(dungeon_t *d)
@@ -619,14 +707,13 @@ void io_handle_input(dungeon_t *d)
     case 's':
       /* New command.  Return to normal display after displaying some   *
        * special screen.                                                */
-      io_display(d, d->fog);
+      io_display(d);
       fail_code = 1;
       break;
     case 'L':
       fail_code = 1;
       break;
     case 'g':
-      /* Teleport the PC to a random place in the dungeon.              */
       io_teleport_pc(d);
       fail_code = 0;
       break;
@@ -641,7 +728,7 @@ void io_handle_input(dungeon_t *d)
       else {
         d->fog = 1;
       }
-      io_display(d, d->fog);
+      io_display(d);
       fail_code = 1;
       break;
     case 'q':
