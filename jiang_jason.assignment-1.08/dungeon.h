@@ -59,10 +59,11 @@ class pc;
 class dungeon {
  public:
   dungeon() : num_rooms(0), rooms(0), map{ter_wall}, hardness{0},
-              pc_distance{0}, pc_tunnel{0}, character_map{0}, PC(0),
-              num_monsters(0), max_monsters(0), character_sequence_number(0),
-              time(0), is_new(0), quit(0), monster_descriptions(),
-              object_descriptions() {}
+              pc_distance{0}, pc_tunnel{0}, character_map{0},
+              object_map{0}, PC(0), num_monsters(0), max_monsters(0),
+              num_objs(0), character_sequence_number(0), time(0),
+              is_new(0), quit(0), unique_killed(0), artifact_obtained(0),
+              monster_descriptions(), object_descriptions() {}
   uint32_t num_rooms;
   room_t *rooms;
   terrain_type map[DUNGEON_Y][DUNGEON_X];
@@ -78,10 +79,13 @@ class dungeon {
   uint8_t pc_distance[DUNGEON_Y][DUNGEON_X];
   uint8_t pc_tunnel[DUNGEON_Y][DUNGEON_X];
   character *character_map[DUNGEON_Y][DUNGEON_X];
+  object_t *object_map[DUNGEON_Y][DUNGEON_X];
+
   pc *PC;
   heap_t events;
   uint16_t num_monsters;
   uint16_t max_monsters;
+  uint16_t num_objs;
   uint32_t character_sequence_number;
   /* Game time isn't strictly necessary.  It's implicit in the turn number *
    * of the most recent thing removed from the event queue; however,       *
@@ -91,6 +95,8 @@ class dungeon {
   uint32_t time;
   uint32_t is_new;
   uint32_t quit;
+  bool unique_killed;
+  bool artifact_obtained;
   std::vector<monster_description> monster_descriptions;
   std::vector<object_description> object_descriptions;
 };

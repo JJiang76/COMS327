@@ -121,14 +121,14 @@ static inline void eat_whitespace(std::ifstream &f)
 {
   while (isspace(f.peek())) {
     f.get();
-  }  
+  }
 }
 
 static inline void eat_blankspace(std::ifstream &f)
 {
   while (isblank(f.peek())) {
     f.get();
-  }  
+  }
 }
 
 static uint32_t parse_name(std::ifstream &f,
@@ -1061,4 +1061,40 @@ return o << hit << std::endl << damage << std::endl << dodge << std::endl
 std::ostream &operator<<(std::ostream &o, object_description &od)
 {
   return od.print(o);
+}
+
+object_t *object_description::generate_object() {
+  object_t *o = new object_t();
+
+  o->name = name;
+  o->description = description;
+  o->type = type;
+  o->color = color;
+  o->hit = hit.roll();
+  o->dodge = dodge.roll();
+  o->defence = defence.roll();
+  o->speed = speed.roll();
+  o->attribute = attribute.roll();
+  o->value = value.roll();
+  o->artifact = artifact;
+  o->rarity = rarity;
+
+  return o;
+}
+
+npc *monster_description::generate_npc() {
+  npc *n = new npc();
+
+  n->name = name;
+  n->description = description;
+  n->symbol = symbol;
+  n->color = color;
+  n->characteristics = abilities;
+  n->speed = speed.roll();
+  n->hitpoints = hitpoints.roll();
+  n->damage = damage;
+  n->rarity = rarity;
+
+
+  return n;
 }

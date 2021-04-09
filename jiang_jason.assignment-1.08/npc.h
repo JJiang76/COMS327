@@ -2,6 +2,8 @@
 # define NPC_H
 
 # include <stdint.h>
+# include <string>
+# include <vector>
 
 # include "dims.h"
 # include "character.h"
@@ -49,6 +51,16 @@ class npc : public character {
   npc_characteristics_t characteristics;
   uint32_t have_seen_pc;
   pair_t pc_last_known_position;
+  std::string description;
+  uint32_t rarity;
+
+  npc() : characteristics(0), have_seen_pc(0), pc_last_known_position(),
+          description(), rarity(0)
+          {
+            character();
+          }
+
+  virtual ~npc() = default;
 };
 
 void gen_monsters(dungeon *d);

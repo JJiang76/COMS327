@@ -1,0 +1,16 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the goal of creating a rogue-like game.
+
+This program enters the dungeon game loop.
+  - The dungeon is now filled with monsters parsed from monster_desc.txt and
+    objects parsed from object_desc.txt
+  - The rarity of npcs/objects are used to determine spawns
+  - 10 objects spawn on each floor
+  - Artifact objects can only spawn in once
+  - Unique monsters do not spawn again after killed
+  - The game end with killing monsters with the BOSS tag (Spongebob)
+  - IO messages for combat now display monster names instead of symbols
+  - Item locations are remembered

@@ -2,8 +2,11 @@
 # define CHARACTER_H
 
 # include <stdint.h>
+# include <vector>
+# include <string>
 
 # include "dims.h"
+# include "dice.h"
 
 typedef enum kill_type {
   kill_direct,
@@ -16,6 +19,10 @@ class character {
   char symbol;
   pair_t position;
   int32_t speed;
+  int hitpoints;
+  dice damage;
+  std::vector<uint32_t> color;
+  std::string name;
   uint32_t alive;
   /* Characters use to have a next_turn for the move queue.  Now that it is *
    * an event queue, there's no need for that here.  Instead it's in the    *
@@ -26,6 +33,8 @@ class character {
    * characters have been created by the game.                              */
   uint32_t sequence_number;
   uint32_t kills[num_kill_types];
+
+  virtual ~character() = default;
 };
 
 class dungeon;

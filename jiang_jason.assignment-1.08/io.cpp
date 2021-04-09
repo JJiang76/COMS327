@@ -205,6 +205,7 @@ void io_display(dungeon *d)
   uint32_t illuminated;
   character *c;
   int32_t visible_monsters;
+  pair_t p;
 
   clear();
   for (visible_monsters = -1, y = 0; y < 21; y++) {
@@ -217,10 +218,25 @@ void io_display(dungeon *d)
                   character_get_pos(d->PC),
                   character_get_pos(d->character_map[y][x]),
                   1, 0)) {
-       mvaddch(y + 1, x,
-                character_get_symbol(d->character_map[y][x]));
+       if (character_get_symbol(d->character_map[y][x]) != '@') {
+        attron(COLOR_PAIR(d->character_map[y][x]->color[0]));
+       }
+       mvaddch(y + 1, x, character_get_symbol(d->character_map[y][x]));
+       if (character_get_symbol(d->character_map[y][x]) != '@') {
+        attroff(COLOR_PAIR(d->character_map[y][x]->color[0]));
+       }
         visible_monsters++;
-      } else {
+      }
+      else if (d->object_map[y][x]) {
+        p[dim_y] = y;
+        p[dim_x] = x;
+        if (can_see(d, character_get_pos(d->PC), p, 1, 0)) {
+          attron(COLOR_PAIR(d->object_map[y][x]->color));
+          mvaddch(y + 1, x, object_symbol[d->object_map[y][x]->type]);
+          attroff(COLOR_PAIR(d->object_map[y][x]->color));
+        }
+      }
+      else {
         switch (pc_learned_terrain(d->PC, y, x)) {
         case ter_wall:
         case ter_wall_immutable:
@@ -276,7 +292,7 @@ void io_display(dungeon *d)
     mvprintw(22, 55, "NONE.");
     attroff(COLOR_PAIR(COLOR_BLUE));
   }
-  
+
   io_print_message_queue(0, 0);
 
   refresh();
@@ -291,8 +307,22 @@ void io_display_no_fog(dungeon *d)
   for (y = 0; y < 21; y++) {
     for (x = 0; x < 80; x++) {
       if (d->character_map[y][x]) {
+        if (character_get_symbol(d->character_map[y][x]) != '@') {
+         attron(COLOR_PAIR(d->character_map[y][x]->color[0]));
+        }
+
         mvaddch(y + 1, x, d->character_map[y][x]->symbol);
-      } else {
+
+        if (character_get_symbol(d->character_map[y][x]) != '@') {
+         attroff(COLOR_PAIR(d->character_map[y][x]->color[0]));
+        }
+      }
+      else if (d->object_map[y][x]) {
+        attron(COLOR_PAIR(d->object_map[y][x]->color));
+        mvaddch(y + 1, x, object_symbol[d->object_map[y][x]->type]);
+        attroff(COLOR_PAIR(d->object_map[y][x]->color));
+      }
+      else {
         switch (mapxy(x, y)) {
         case ter_wall:
         case ter_wall_immutable:
@@ -344,7 +374,7 @@ void io_display_no_fog(dungeon *d)
     mvprintw(22, 55, "NONE.");
     attroff(COLOR_PAIR(COLOR_BLUE));
   }
-  
+
   io_print_message_queue(0, 0);
 }
 
@@ -402,7 +432,7 @@ uint32_t io_teleport_pc(dungeon *d)
         break;
       default:
         break;
-      }      
+      }
     }
 
     mvaddch(dest[dim_y] + 1, dest[dim_x], actual);
@@ -491,7 +521,7 @@ uint32_t io_teleport_pc(dungeon *d)
 
   if (charpair(dest) && charpair(dest) != d->PC) {
     io_queue_message("Teleport failed.  Destination occupied.");
-  } else {  
+  } else {
     d->character_map[d->PC->position[dim_y]][d->PC->position[dim_x]] = NULL;
     d->character_map[dest[dim_y]][dest[dim_x]] = d->PC;
 

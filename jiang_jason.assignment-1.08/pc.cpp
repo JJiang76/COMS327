@@ -38,6 +38,7 @@ void config_pc(dungeon *d)
   d->PC->speed = PC_SPEED;
   d->PC->alive = 1;
   d->PC->sequence_number = 0;
+  d->PC->hitpoints = 1000;
   d->PC->kills[kill_direct] = d->PC->kills[kill_avenged] = 0;
 
   d->character_map[d->PC->position[dim_y]][d->PC->position[dim_x]] = d->PC;
@@ -231,7 +232,7 @@ void pc_observe_terrain(pc *p, dungeon *d)
     can_see(d, p->position, where, 1, 1);
     where[dim_y] = y_max;
     can_see(d, p->position, where, 1, 1);
-  }       
+  }
 }
 
 int32_t is_illuminated(pc *p, int16_t y, int16_t x)
