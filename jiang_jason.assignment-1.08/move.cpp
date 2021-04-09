@@ -80,8 +80,8 @@ void do_combat(dungeon *d, character *atk, character *def)
   if (atk == d->PC) {
     io_queue_message("You smite the %s!", def->name.c_str());
 
-    if (dynamic_cast<npc*>def->characteristics & NPC_BOSS) {
-      d->num_monsters = 0;
+    if (dynamic_cast<npc*>(def)->characteristics & NPC_BOSS) {
+      d->quit = true;
     }
   }
 
