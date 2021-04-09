@@ -1,0 +1,17 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the goal of creating a rogue-like game.
+
+This program parses data from monster_desc.txt
+
+The parsed data is stored in a vector of monster_desc objects.
+  - monster_desc class can be found in parse.h
+All of the logic for parsing, storing, and printing can be found in parse.cpp
+  - parse() handles the io and storing the data into the monster_desc vector
+  - print_desc() prints all of the data stored in the monster_desc vector to standard output
+The dice class used to store data for speed, hp, and damage is in utils.h
+
+The main method created a monster_desc vector v, and calls parse() and print_desc(),
+passing in v, then immediately returns.
