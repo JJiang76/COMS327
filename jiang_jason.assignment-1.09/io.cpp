@@ -12,6 +12,7 @@
 #include "object.h"
 #include "npc.h"
 #include "character.h"
+#include "descriptions.h"
 
 /* Same ugly hack we did in path.c */
 static dungeon *thedungeon;
@@ -683,7 +684,7 @@ uint32_t io_teleport_pc(dungeon *d)
 
   if (charpair(dest) && charpair(dest) != d->PC) {
     io_queue_message("Teleport failed.  Destination occupied.");
-  } else {  
+  } else {
     d->character_map[d->PC->position[dim_y]][d->PC->position[dim_x]] = NULL;
     d->character_map[dest[dim_y]][dest[dim_x]] = d->PC;
 
@@ -865,6 +866,189 @@ static void io_list_monsters(dungeon *d)
   io_display(d);
 }
 
+void io_equip(dungeon *d) {
+  char c;
+  while (1) {
+    c = getch();
+    if (c >= 48 && c <= 57) {
+      equip(d, c-48);
+      break;
+    }
+    else if (c == 27) {
+      break;
+    }
+  }
+}
+
+void io_drop(dungeon *d) {
+  char c;
+  while (1) {
+    c = getch();
+    if (c >= 48 && c <= 57) {
+      drop(d, c-48);
+      break;
+    }
+    else if (c == 27) {
+      break;
+    }
+  }
+}
+
+void io_expunge(dungeon *d) {
+  char c;
+  while (1) {
+    c = getch();
+    if (c >= 48 && c <= 57) {
+      expunge(d, c-48);
+      break;
+    }
+    else if (c == 27) {
+      break;
+    }
+  }
+}
+
+void io_inspect(dungeon *d) {
+  char c;
+  object *o;
+  while (1) {
+    c = getch();
+    if (c >= 48 && c <= 57) {
+      o = d->PC->carry[c-48];
+      clear();
+      mvprintw(0, 0, "%-60s", o->get_name());
+      mvprintw(1, 0, "%-60s", "");
+      mvprintw(2, 0, "%-60s", o->get_description());
+      mvprintw(3, 0, "%-60s", "");
+      mvprintw(4, 0, "%-60s", "Press any key to exit");
+
+      getch();
+
+      clear();
+      break;
+    }
+    else if (c == 27) {
+      break;
+    }
+  }
+}
+
+void io_inventory(dungeon *d) {
+  int i;
+
+  mvprintw(2, 9, " %-60s ", "");
+  mvprintw(3, 9, "%-60s", "This is your inventory. Press \'w\' to wear, \'d\' to drop");
+  mvprintw(4, 9, "%-60s", "\'I\' to inspect, '\'x\' to expunge");
+  mvprintw(5, 9, "%-60s", "");
+
+  for (i = 0; i < 10; i++) {
+    if (d->PC->carry[i]) {
+      mvprintw(i+6, 9, "(%d) %-57s", i, d->PC->carry[i]->get_name());
+    }
+    else {
+      mvprintw(i+6, 9, "(%d)%-57s", i, "");
+    }
+  }
+
+  mvprintw(18, 9, "%-60s", "Press esc or \'i\' to continue.");
+}
+
+void io_display_inventory(dungeon *d) {
+  io_inventory(d);
+
+  while (1) {
+    switch(getch()) {
+      case 'w':
+        mvprintw(17, 9, "%-60s", "Wear which item? (Press 0-9, ESC to cancel)");
+        io_equip(d);
+        break;
+      case 'd':
+        mvprintw(17, 9, "%-60s", "Drop which item? (Press 0-9)");
+        io_drop(d);
+        break;
+      case 'I':
+        mvprintw(17, 9, "%-60s", "Inspect which item? (Press 0-9)");
+        io_inspect(d);
+        break;
+      case 'x':
+        mvprintw(17, 9, "%-60s", "Expunge which item? (Press 0-9)");
+        io_expunge(d);
+        break;
+      case 'i':
+      case 27: return;
+    }
+
+    io_inventory(d);
+    mvprintw(17, 9, "%-60s", "");
+  }
+}
+
+void io_dequip(dungeon *d) {
+  char c;
+  while (1) {
+    c = getch();
+    if (c >= 'a' && c <= 'l') {
+      dequip(d, c-97);
+      break;
+    }
+    else if (c == 27) {
+      break;
+    }
+  }
+}
+
+void io_equipment(dungeon *d) {
+  char equip_names[12][8] = {
+                    "weapon",
+                    "offhand",
+                    "ranged",
+                    "armor",
+                    "helmet",
+                    "cloak",
+                    "gloves",
+                    "boots",
+                    "amulet",
+                    "light",
+                    "l-ring",
+                    "r-ring"
+                    };
+
+  int i;
+
+  mvprintw(2, 9, "%-60s", "");
+  mvprintw(3, 9, "%-60s", "This is your equipment. Press \'t\' to remove a piece of equipment");
+  mvprintw(4, 9, "%-60s", "");
+
+  for (i = 0; i < 12; ++i) {
+    if (d->PC->equipment[i]) {
+      mvprintw(i+5, 9, "(%c)[ %-8s] %-46s", i+97, equip_names[i],
+                                           d->PC->equipment[i]->get_name());
+    }
+    else {
+      mvprintw(i+5, 9, "(%c)[ %-8s]%-47s", i+97, equip_names[i], "");
+    }
+  }
+
+  mvprintw(19, 9, "%-60s", "Press esc or \'e\' to continue.");
+}
+
+void io_display_equipment(dungeon *d) {
+  io_equipment(d);
+
+  while (1) {
+    switch(getch()) {
+      case 't':
+        mvprintw(18, 9, "%-60s", "Take off which item? (Press a-l)");
+        io_dequip(d);
+        break;
+      case 'e':
+      case 27: return;
+    }
+    io_equipment(d);
+    mvprintw(18, 9, "%-60s", "");
+  }
+}
+
 void io_handle_input(dungeon *d)
 {
   uint32_t fail_code;
@@ -968,9 +1152,6 @@ void io_handle_input(dungeon *d)
       io_display(d);
       fail_code = 1;
       break;
-    case 'L':
-      fail_code = 1;
-      break;
     case 'g':
       /* Teleport the PC to a random place in the dungeon.              */
       io_teleport_pc(d);
@@ -980,8 +1161,28 @@ void io_handle_input(dungeon *d)
       io_display_no_fog(d);
       fail_code = 1;
       break;
-     case 'm':
+    case 'm':
       io_list_monsters(d);
+      fail_code = 1;
+      break;
+    case 'i':
+      io_display_inventory(d);
+      io_display(d);
+      fail_code = 1;
+      break;
+    case 'e':
+      io_display_equipment(d);
+      io_display(d);
+      fail_code = 1;
+      break;
+    case ',':
+      if (!object_pickup(d)) {
+        io_queue_message("You are carrying too many items!");
+      }
+      fail_code = 0;
+      break;
+    case 'L':
+      //look at monster
       fail_code = 1;
       break;
     case 'q':

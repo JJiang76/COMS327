@@ -1,0 +1,16 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is part of a series of assignments with the goal of creating
+a rogue-like game.
+
+The user is now able to pick up items and interact with them.
+  - The 'i' key displays the inventory. From there the user has a few options.
+    - The 'w' key prompts the user to select an item to equip.
+    - The 'd' key prompts the user to select an item to drop.
+    - The 'x' key prompts the user to select an item to destroy.
+    - The 'I' key prompts the user to select an item to display its description
+
+  - The 'e' key displays the equipment.
+    - From there the user can choose to dequip an item with the 't' key.

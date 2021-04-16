@@ -31,7 +31,7 @@ void place_pc(dungeon *d)
 void config_pc(dungeon *d)
 {
   static dice pc_dice(0, 1, 4);
-  
+
   d->PC = new pc;
 
   d->PC->symbol = '@';
@@ -45,6 +45,17 @@ void config_pc(dungeon *d)
   d->PC->color.push_back(COLOR_WHITE);
   d->PC->damage = &pc_dice;
   d->PC->name = "Isabella Garcia-Shapiro";
+  d->PC->hp = 1000;
+
+  int i;
+
+  for (i = 0; i < 12; ++i) {
+    d->PC->equipment[i] = NULL;
+  }
+
+  for (i = 0; i < 10; ++i) {
+    d->PC->carry[i] = NULL;
+  }
 
   d->character_map[d->PC->position[dim_y]][d->PC->position[dim_x]] = d->PC;
 
@@ -237,7 +248,7 @@ void pc_observe_terrain(pc *p, dungeon *d)
     can_see(d, p->position, where, 1, 1);
     where[dim_y] = y_max;
     can_see(d, p->position, where, 1, 1);
-  }       
+  }
 }
 
 int32_t is_illuminated(pc *p, int16_t y, int16_t x)
@@ -250,4 +261,92 @@ void pc_see_object(character *the_pc, object *o)
   if (o) {
     o->has_been_seen();
   }
+}
+
+int object_pickup(dungeon *d) {
+  int i;
+
+  for (i = 0; i < 10; ++i) {
+    if (d->PC->carry[i] == NULL) {
+      d->PC->carry[i]= d->objmap[d->PC->position[dim_y]][d->PC->position[dim_x]];
+      d->objmap[d->PC->position[dim_y]][d->PC->position[dim_x]] = NULL;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+
+int equip(dungeon *d, int slot) {
+  if (d->PC->carry[slot] == NULL) {
+    return 0;
+  }
+
+  int i;
+
+  switch (d->PC->carry[slot]->get_type()) {
+    case objtype_WEAPON: i = 0; break;
+    case objtype_OFFHAND: i = 1; break;
+    case objtype_RANGED: i = 2; break;
+    case objtype_ARMOR: i = 3; break;
+    case objtype_HELMET: i = 4; break;
+    case objtype_CLOAK: i = 5; break;
+    case objtype_GLOVES: i = 6; break;
+    case objtype_BOOTS: i = 7; break;
+    case objtype_AMULET: i = 8; break;
+    case objtype_LIGHT: i = 9; break;
+    case objtype_RING:
+      if (d->PC->equipment[10]) {
+        i = 11;
+      }
+      else {
+        i = 10;
+      }
+      break;
+  }
+
+  d->PC->equipment[i] = d->PC->carry[slot];
+  d->PC->carry[slot] = NULL;
+
+  return 1;
+}
+
+int drop(dungeon *d, int slot) {
+  if (d->PC->carry[slot] == NULL) {
+    return 0;
+  }
+
+  d->objmap[d->PC->position[dim_y]][d->PC->position[dim_x]] = d->PC->carry[slot];
+  d->PC->carry[slot] = NULL;
+
+  return 1;
+}
+
+int expunge(dungeon *d, int slot) {
+  if (d->PC->carry[slot] == NULL) {
+    return 0;
+  }
+  free(d->PC->carry[slot]);
+  d->PC->carry[slot] = NULL;
+
+  return 1;
+}
+
+int dequip(dungeon *d, int slot) {
+  if (d->PC->equipment[slot] == NULL) {
+    return 0;
+  }
+
+  int i;
+
+  for (i = 0; i < 10; ++i) {
+    if (d->PC->carry[i] == NULL) {
+      d->PC->carry[i] = d->PC->equipment[slot];
+      d->PC->equipment[slot] = NULL;
+      return 1;
+    }
+  }
+
+  return 0;
 }

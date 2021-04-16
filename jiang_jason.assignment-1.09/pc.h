@@ -13,7 +13,7 @@ class pc : public character {
   terrain_type known_terrain[DUNGEON_Y][DUNGEON_X];
   uint8_t visible[DUNGEON_Y][DUNGEON_X];
   object *carry[10];
-  object *equipment[10];
+  object *equipment[12];
 };
 
 void pc_delete(pc *pc);
@@ -28,5 +28,10 @@ void pc_init_known_terrain(pc *p);
 void pc_observe_terrain(pc *p, dungeon *d);
 int32_t is_illuminated(pc *p, int16_t y, int16_t x);
 void pc_reset_visibility(pc *p);
+int object_pickup(dungeon *d);
+int equip(dungeon *d, int slot);
+int drop(dungeon *d, int slot);
+int expunge(dungeon *d, int slot);
+int dequip(dungeon *d, int slot);
 
 #endif
