@@ -5,6 +5,9 @@ Jason Jiang - jjiang27@iastate.edu
 This program is part of a series of assignments with the goal of creating
 a rogue-like game.
 
+!! There is a bug that causes the game to freeze occasionally
+    caused by prof's 1.08 solution
+
 The user is now able to pick up items and interact with them.
   - The user must press ',' to pick up an item.
   - The 'i' key displays the inventory. From there the user has a few options.
@@ -25,3 +28,6 @@ Combat is done using damage dice, hp, and equipment.
       - monster_dmg = npc->damage->roll() - sum(equipment[i]->damage)
 
 The game ends with killing a monster with the BOSS tag (Spongebob).
+
+The key 'L' allows the player to select a tile, and if there is a monster,
+display its information.

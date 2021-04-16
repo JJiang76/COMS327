@@ -305,6 +305,9 @@ int equip(dungeon *d, int slot) {
       }
       break;
   }
+  if (d->PC->equipment[i] != NULL) {
+    return 0;
+  }
 
   d->PC->equipment[i] = d->PC->carry[slot];
   d->PC->carry[slot] = NULL;
@@ -327,7 +330,7 @@ int expunge(dungeon *d, int slot) {
   if (d->PC->carry[slot] == NULL) {
     return 0;
   }
-  
+
   delete (d->PC->equipment[slot]);
   d->PC->carry[slot] = NULL;
 
