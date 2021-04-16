@@ -327,7 +327,8 @@ int expunge(dungeon *d, int slot) {
   if (d->PC->carry[slot] == NULL) {
     return 0;
   }
-  free(d->PC->carry[slot]);
+  
+  delete (d->PC->equipment[slot]);
   d->PC->carry[slot] = NULL;
 
   return 1;
@@ -349,4 +350,28 @@ int dequip(dungeon *d, int slot) {
   }
 
   return 0;
+}
+
+int dmg_mitigation(dungeon *d) {
+  int ret = 0, i;
+
+  for (i = 0; i < 12; ++i) {
+    if (d->PC->equipment[i] != NULL) {
+      ret += d->PC->equipment[i]->get_defence();
+    }
+  }
+
+  return ret;
+}
+
+int attack_power(dungeon *d) {
+  int ret = 0, i;
+
+  for (i = 0; i < 12; ++i) {
+    if (d->PC->equipment[i] != NULL) {
+      ret += d->PC->equipment[i]->roll_dice();
+    }
+  }
+
+  return ret;
 }

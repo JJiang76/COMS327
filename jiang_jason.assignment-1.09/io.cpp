@@ -1176,8 +1176,13 @@ void io_handle_input(dungeon *d)
       fail_code = 1;
       break;
     case ',':
-      if (!object_pickup(d)) {
-        io_queue_message("You are carrying too many items!");
+      if (d->objmap[d->PC->position[dim_y]][d->PC->position[dim_x]] == NULL) {
+        fail_code = 1;
+        break;
+      }
+      else if (!object_pickup(d)) {
+        fail_code = 1;
+        break;
       }
       fail_code = 0;
       break;

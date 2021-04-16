@@ -56,6 +56,10 @@ class npc : public character {
   pair_t pc_last_known_position;
   const char *description;
   monster_description &md;
+
+  int32_t get_characteristics() {
+    return characteristics;
+  }
 };
 
 void gen_monsters(dungeon *d);

@@ -6,6 +6,7 @@ This program is part of a series of assignments with the goal of creating
 a rogue-like game.
 
 The user is now able to pick up items and interact with them.
+  - The user must press ',' to pick up an item.
   - The 'i' key displays the inventory. From there the user has a few options.
     - The 'w' key prompts the user to select an item to equip.
     - The 'd' key prompts the user to select an item to drop.
@@ -14,3 +15,13 @@ The user is now able to pick up items and interact with them.
 
   - The 'e' key displays the equipment.
     - From there the user can choose to dequip an item with the 't' key.
+
+Combat is done using damage dice, hp, and equipment.
+  - The PC damage is calculated by rolling every damage dice on each equipped
+      item and adding to base roll
+      - pc_dmg = sum(equipment[i]->roll()) + pc->damage->roll()
+  - Monster damage is calculated by rolling its damage dice and subtracting
+      the defense value of every equipped item by the PC
+      - monster_dmg = npc->damage->roll() - sum(equipment[i]->damage)
+
+The game ends with killing a monster with the BOSS tag (Spongebob).

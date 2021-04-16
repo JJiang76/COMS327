@@ -33,5 +33,7 @@ int equip(dungeon *d, int slot);
 int drop(dungeon *d, int slot);
 int expunge(dungeon *d, int slot);
 int dequip(dungeon *d, int slot);
+int dmg_mitigation(dungeon *d);
+int attack_power(dungeon *d);
 
 #endif

@@ -135,3 +135,5 @@
 
 04/15/21: Created io methods to display inventory and equipment
           Created carry[] and equipment[] in pc class
+          Added combat semantics
+          Added end for game after killing spongebob

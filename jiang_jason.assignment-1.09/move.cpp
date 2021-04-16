@@ -18,7 +18,6 @@
 
 void do_combat(dungeon *d, character *atk, character *def)
 {
-  int can_see_atk, can_see_def;
   const char *organs[] = {
     "liver",                   /*  0 */
     "pancreas",                /*  1 */
@@ -52,63 +51,55 @@ void do_combat(dungeon *d, character *atk, character *def)
     "brain",                   /* 29 */
   };
   int part;
+  int mitigation = dmg_mitigation(d);
+  int power = attack_power(d);
 
   if (def->alive) {
-    def->alive = 0;
-    charpair(def->position) = NULL;
-    
-    if (def != d->PC) {
-      d->num_monsters--;
-    } else {
-      if ((part = rand() % (sizeof (organs) / sizeof (organs[0]))) < 26) {
-        io_queue_message("As %s%s eats your %s,", is_unique(atk) ? "" : "the ",
-                         atk->name, organs[rand() % (sizeof (organs) /
-                                                     sizeof (organs[0]))]);
-        io_queue_message("   ...you wonder if there is an afterlife.");
+    if (atk == d->PC) {
+      int dam = d->PC->damage->roll() + power;
+      io_queue_message("You attack the %s for %d!", def->name, dam);
+      def->hp -= dam;
+
+      if (def->hp <= 0) {
+        io_queue_message("You defeat the %s", def->name);
+        def->alive = 0;
+        charpair(def->position) = NULL;
+        if (dynamic_cast<npc*>(def)->get_characteristics() & NPC_BOSS) {
+          io_queue_message("You defeat the sponge");
+          d->quit = 1;
+        }
+      }
+    }
+    else if (def == d->PC) {
+      int dam = def->damage->roll() - mitigation;
+      io_queue_message("The %s attacks for %d!", atk->name, dam);
+      d->PC->hp -= dam;
+
+      if (d->PC->hp <= 0) {
+        if ((part = rand() % (sizeof (organs) / sizeof (organs[0]))) < 26) {
+          io_queue_message("As %s%s eats your %s,", is_unique(atk) ? "" : "the ",
+                           atk->name, organs[rand() % (sizeof (organs) /
+                                                       sizeof (organs[0]))]);
+          io_queue_message("   ...you wonder if there is an afterlife.");
+          /* Queue an empty message, otherwise the game will not pause for *
+           * player to see above.                                          */
+          io_queue_message("");
+        }
+        else {
+          io_queue_message("Your last thoughts fade away as "
+                           "%s%s eats your %s...",
+                           is_unique(atk) ? "" : "the ",
+                           atk->name, organs[part]);
+          io_queue_message("");
+        }
         /* Queue an empty message, otherwise the game will not pause for *
          * player to see above.                                          */
         io_queue_message("");
-      } else {
-        io_queue_message("Your last thoughts fade away as "
-                         "%s%s eats your %s...",
-                         is_unique(atk) ? "" : "the ",
-                         atk->name, organs[part]);
-        io_queue_message("");
+        }
       }
-      /* Queue an empty message, otherwise the game will not pause for *
-       * player to see above.                                          */
-      io_queue_message("");
-    }
-    atk->kills[kill_direct]++;
-    atk->kills[kill_avenged] += (def->kills[kill_direct] +
-                                  def->kills[kill_avenged]);
-  }
-
-  if (atk == d->PC) {
-    io_queue_message("You smite %s%s!", is_unique(def) ? "" : "the ", def->name);
-  }
-
-  can_see_atk = can_see(d, character_get_pos(d->PC),
-                        character_get_pos(atk), 1, 0);
-  can_see_def = can_see(d, character_get_pos(d->PC),
-                        character_get_pos(def), 1, 0);
-
-  if (atk != d->PC && def != d->PC) {
-    if (can_see_atk && !can_see_def) {
-      io_queue_message("%s%s callously murders some poor, "
-                       "defenseless creature.",
-                       is_unique(atk) ? "" : "The ", atk->name);
-    }
-    if (can_see_def && !can_see_atk) {
-      io_queue_message("Something kills %s%s.",
-                       is_unique(def) ? "" : "the helpless ", def->name);
-    }
-    if (can_see_atk && can_see_def) {
-      io_queue_message("You watch in abject horror as %s%s "
-                       "gruesomely murders %s%s!",
-                       is_unique(atk) ? "" : "the ", atk->name,
-                       is_unique(def) ? "" : "the ", def->name);
-    }
+      atk->kills[kill_direct]++;
+      atk->kills[kill_avenged] += (def->kills[kill_direct] +
+                                    def->kills[kill_avenged]);
   }
 }
 
