@@ -12,6 +12,8 @@ class pc : public character {
   ~pc() {}
   terrain_type known_terrain[DUNGEON_Y][DUNGEON_X];
   uint8_t visible[DUNGEON_Y][DUNGEON_X];
+  object *carry[10];
+  object *equipment[10];
 };
 
 void pc_delete(pc *pc);
