@@ -1,0 +1,65 @@
+Group Members:
+Jason Jiang - jjiang27@iastate.edu
+---
+
+This program is the final version (for now) of the rogue-like game.
+
+NOTE: I have changed the .txt files for monster and object descriptions.
+      The updated ones are in /description_files. Please put them into 
+      your /.rlg327 folder before running the game.
+
+All added features for 1.10:
+-----------------------------------------------------------
+
+- Character levels and stats
+  - PC has new stats
+    - Strength: Adds a flat amount of attack after all damage rolls
+    - Defense: Adds a flat amount of defense after all defense rolls
+    - Speed: Adds a flat amount of speed after all speed calculations
+    - Dexterity: Contributes to hit rate and dodge chance
+    - Luck: Contributes to crit chance
+  - PC has new attributes
+    - Dodge: Chance to dodge an enemy attack; calculated using DEX
+    - Hit: Chance to hit an enemy with an attack; calculated using DEX, SPD, and equipped items
+    - Crit: Chance to deal double damage with an attack; calculated using LUK
+  - PC now has can gain levels from defeating monsters
+    - EXP needed for each level scales by level
+    - Each level up gives a scaling amount of points to put into stats
+    - After reaching the exp threshold for a level, the PC must level up before
+      he can gain any more exp
+    - Exp is earned from defeating monsters
+    - Exp gained increases based on the floor level of the dungeon
+  - Monster stats scale with floor level of the dungeon
+  - Monster stats and rarities have been adjusted to be a bit more balanced
+  - Items stats and rarities have been adjusted to be a bit more balanced
+
+- Combat
+  - When a monster attacks the PC, the PC is able to mitigate damage. This is done by summing all defense values on equipment and the defense stat. Mitigation in this form cannot drop the attack value past 0.
+  - When a monster attacks the PC, the PC has a chance to dodge the attack based on his Dodge attribute.
+  - When the PC attacks a monster, the PC must pass a hit chance for the attack to connect. This is based on his Hit attribute.
+  - When the PC attacks a monster, the PC has a chance to critically strike for double damage. This is based on the Crit attribute.
+
+- Floors
+  - The dungeon is now labeled with floor numbers.
+  - PC starts at floor 0.
+  - Maximum of 10 upper floors, unlimited amount of "basement" floors
+  - Each floor going up from floor 0 has increasingly stronger monsters
+    - Monster stats (hp, spd, atk) are scaled based on floor level
+    - All basement floors have the same monster difficulty as floor 0
+  - The PC may traverse floors in any order
+  - Floor 10 holds the Princess of the Dungeon with no monsters 
+  - Floors are not "remembered"
+
+- New Win Condition
+  - Game no longer ends with killing BOSS monster (Spongebob)
+  - After the BOSS monster is killed, a key will "drop" (doesn't actually go in the inventory) that allows the PC to open the cage that the Princess is in
+  - The game ends with rescuing the Princess.
+  - If you reach floor 10 without the key, you may go back to earlier floors to find it.
+
+- New IO
+  - New keys added
+    - 'U' allows the PC to level up and assign stat points if he has enough exp
+    - 'c' views all of the PC's stats and attributes
+    - 'F' allows the PC to teleport to any nonbasement floor
+  - Updated display
+    - The in-game display now displays (in real time), the PC's level, exp, hp, and stats
